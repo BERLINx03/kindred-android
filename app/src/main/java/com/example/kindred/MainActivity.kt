@@ -1,7 +1,6 @@
 package com.example.kindred
 
 import android.Manifest
-import android.R.attr.contentDescription
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -13,21 +12,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.ExoPlayer
-import coil3.compose.AsyncImage
+import com.example.kindred.ui.ExperimentalOnBoardingScreen
 import com.example.kindred.ui.background.DemoScreen
 import com.example.kindred.ui.theme.KindredTheme
 import java.io.File
@@ -41,36 +39,57 @@ class MainActivity : ComponentActivity() {
         exoplayer = ExoPlayer.Builder(this).build()
         enableEdgeToEdge()
         setContent {
-//            val file = File(filesDir, "flag.bit")
-//            file.writeBytes(byteArrayOf(if (flag) 1 else 0))
+            val file = File(filesDir, "flag.bit")
+            val flag = remember {
+                mutableStateOf(if (file.exists()) file.readBytes()[0] == 1.toByte() else false)
+            }
+            var songs by remember {
+                mutableStateOf<List<Song>>(emptyList())
+            }
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { isGranted ->
                 if (isGranted) {
-                    android.util.Log.d("MusicRepository", "Permission Granted!")
+                    songs = repo.fetchDeviceMusics()
                 } else {
                     android.util.Log.d("MusicRepository", "Permission ain't granted!")
                 }
             }
-            var songs by remember {
-                mutableStateOf<List<Song>>(repo.fetchDeviceMusics())
-            }
-            //TODO("onBoarding screen -> this is an very early experimental version so if anything (which will) went wrong or you have any kinda of suggestion don't hesitate issuing it or text me on x or discord")
-            KindredTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        modifier = Modifier.padding(innerPadding),
-                        onClick = { launcher.launch(Manifest.permission.READ_EXTERNAL_STORAGE) }
-                    ) {
-                        songs = repo.fetchDeviceMusics()
-                    }
-                        DemoScreen(songs = songs, player = exoplayer)
+            var permissionRequested by remember { mutableStateOf(false) }
+
+            LaunchedEffect(flag.value) {
+                if (flag.value && !permissionRequested) {
+                    permissionRequested = true
+                    launcher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                 }
             }
-
+            KindredTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    when {
+                        !flag.value -> {
+                            ExperimentalOnBoardingScreen { done ->
+                                flag.value = done
+                                file.writeBytes(byteArrayOf(1))
+                            }
+                        }
+                        songs.isNotEmpty() -> {
+                            DemoScreen(songs = songs, player = exoplayer)
+                        }
+                        else -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
 fun openGivenProfile(context: Context, profileUrl: String, packageName: String) {
     val pm = context.packageManager
     val isInstalled = try {
@@ -89,26 +108,5 @@ fun openGivenProfile(context: Context, profileUrl: String, packageName: String) 
         context.startActivity(intent)
     } catch (_: ActivityNotFoundException) {
         Toast.makeText(context, "Cannot open profile", Toast.LENGTH_SHORT).show()
-    }
-}
-@Composable
-fun Greeting(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onGetMusic: () -> Unit
-) {
-    Column {
-        Button(onClick) {
-            Text(
-                text = "Grant Permissions",
-                modifier = modifier
-            )
-        }
-        Button(onGetMusic) {
-            Text(
-                text = "Get Music",
-                modifier = modifier
-            )
-        }
     }
 }

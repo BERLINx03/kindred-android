@@ -299,7 +299,11 @@ fun DemoScreen(
                     )
                 }
                 Text(
-                    text = helperFormat(player.duration),
+                    text = if (player.duration > 0) {
+                        helperFormat(player.duration)
+                    } else {
+                        "--:--"
+                    },
                     textAlign = TextAlign.Center,
                     modifier = Modifier.width(55.dp),
                     color = textColor
@@ -340,21 +344,6 @@ fun DemoScreen(
     }
 }
 
-/*
-
-openGivenProfile(
-context = context,
-"https://discord.com/users/543104385098579999",
-"com.discord"
-)
-
-
-openGivenProfile(
-                                    context = context,
-                                    "https://x.com/BERLINx03",
-                                    "com.twitter.android"
-                                )
-*/
 @Composable
 @Preview
 fun BackgroundPreview() {
