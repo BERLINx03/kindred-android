@@ -2,7 +2,12 @@ package com.example.kindred
 
 import android.Manifest
 import android.R.attr.contentDescription
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -20,16 +25,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.ExoPlayer
 import coil3.compose.AsyncImage
+import com.example.kindred.ui.background.DemoScreen
 import com.example.kindred.ui.theme.KindredTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
+    lateinit var exoplayer: ExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val repo = MusicRepository(this.applicationContext)
+        exoplayer = ExoPlayer.Builder(this).build()
         enableEdgeToEdge()
         setContent {
+//            val file = File(filesDir, "flag.bit")
+//            file.writeBytes(byteArrayOf(if (flag) 1 else 0))
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission()
             ) { isGranted ->
@@ -42,42 +55,44 @@ class MainActivity : ComponentActivity() {
             var songs by remember {
                 mutableStateOf<List<Song>>(repo.fetchDeviceMusics())
             }
+            //TODO("onBoarding screen -> this is an very early experimental version so if anything (which will) went wrong or you have any kinda of suggestion don't hesitate issuing it or text me on x or discord")
             KindredTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
                         modifier = Modifier.padding(innerPadding),
                         onClick = { launcher.launch(Manifest.permission.READ_EXTERNAL_STORAGE) }
                     ) {
                         songs = repo.fetchDeviceMusics()
                     }
-
-                    Column {
-                        AsyncImage(
-                            model = songs[0].songArtwork,
-                            contentDescription = null
-                        )
-                        AsyncImage(
-                            model = songs[0].albumArtwork,
-                            contentDescription = null
-                        )
-
-                        AsyncImage(
-                            model = songs[0].songArtwork,
-                            contentDescription = null
-                        )
-                    }
-//                        DemoScreen(songs = songs)
+                        DemoScreen(songs = songs, player = exoplayer)
                 }
             }
 
         }
     }
 }
-
+fun openGivenProfile(context: Context, profileUrl: String, packageName: String) {
+    val pm = context.packageManager
+    val isInstalled = try {
+        pm.getPackageInfo(packageName, 0)
+        true
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = profileUrl.toUri()
+        if (isInstalled) {
+            setPackage(packageName)
+        }
+    }
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(context, "Cannot open profile", Toast.LENGTH_SHORT).show()
+    }
+}
 @Composable
 fun Greeting(
-    name: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onGetMusic: () -> Unit

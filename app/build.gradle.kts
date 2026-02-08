@@ -43,7 +43,7 @@ android {
 
 dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
-//    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+    implementation("androidx.media3:media3-exoplayer:1.9.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

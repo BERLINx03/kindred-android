@@ -17,7 +17,7 @@ class MusicRepository(val context: Context) {
     val contentResolver = context.contentResolver
     private val uri = Media.EXTERNAL_CONTENT_URI
 
-    private val albumArtUri = "content://media/external/audio/albumart".toUri()
+    private val albumUri = "content://media/external/audio/albumart".toUri()
     private val projection = arrayOf<String>(
         Media._ID,
         Media.TITLE,
@@ -60,7 +60,7 @@ class MusicRepository(val context: Context) {
                     val data = cursor.getString(dataColumn)
                     val duration = cursor.getLong(durationC)
                     val albumId = cursor.getLong(albumC)
-                    val albumImgUri = ContentUris.withAppendedId(albumArtUri, albumId)
+                    val albumImgUri = ContentUris.withAppendedId(albumUri, albumId)
                     Log.d(TAG, "Album id is $albumId")
                     Log.d(TAG, "duration = ${helperFormat(duration)}")
                     val songUri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id)
@@ -114,7 +114,7 @@ fun helperFormat(time: Long): String {
     reminder %= (1000 * 60)
     val seconds = reminder / 1000
 
-    return "$hours:$minutes:$seconds"
+    return "${if (hours.toInt() == 0) "" else if(hours < 10) "0$hours:" else "$hours:"}${if (minutes < 10) "0$minutes" else minutes}:${if (seconds < 10) "0$seconds" else seconds}"
 }
 
 data class Song(
