@@ -10,4 +10,4 @@ A Main goals of this project are designing coding, maintaining it without the he
 ![Onboarding Screen](images/screen_zero.jpeg)
 
 ## Download
-Head over to [Releases](../../releases) and download the latest version.
+Head over to [Releases](https://github.com/BERLINx03/kindred-android/releases/tag/0.1v) and download the latest version.
