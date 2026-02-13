@@ -42,6 +42,8 @@ android {
 }
 
 dependencies {
+
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
     implementation("androidx.media3:media3-exoplayer:1.9.2")
     implementation(libs.androidx.core.ktx)

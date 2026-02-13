@@ -1,17 +1,21 @@
 package com.example.kindred
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,17 +27,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.animation.doOnEnd
 import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.kindred.ui.ExperimentalOnBoardingScreen
 import com.example.kindred.ui.background.DemoScreen
 import com.example.kindred.ui.theme.KindredTheme
+import com.example.kindred.ui.theme.SplashViewModel
 import java.io.File
 
 class MainActivity : ComponentActivity() {
 
+    private val splashViewModel by viewModels<SplashViewModel>()
     lateinit var exoplayer: ExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().apply {
+            setKeepOnScreenCondition(fun(): Boolean { return !splashViewModel.isLoaded.value })
+            setOnExitAnimationListener { screen ->
+                val zoomX = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_X,
+                    0.8f,
+                    0.0f
+                )
+                zoomX.interpolator = OvershootInterpolator()
+                zoomX.duration = 500L
+                zoomX.doOnEnd { screen.remove() }
+                val zoomY = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_Y,
+                    0.8f,
+                    0.0f
+                )
+                zoomY.interpolator = OvershootInterpolator()
+                zoomY.duration = 500L
+                zoomY.doOnEnd { screen.remove() }
+
+                zoomX.start()
+                zoomY.start()
+            }
+        }
         super.onCreate(savedInstanceState)
         val repo = MusicRepository(this.applicationContext)
         exoplayer = ExoPlayer.Builder(this).build()
@@ -67,15 +101,20 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     when {
                         !flag.value -> {
+                            splashViewModel.setIsLoaded(false)
                             ExperimentalOnBoardingScreen { done ->
                                 flag.value = done
                                 file.writeBytes(byteArrayOf(1))
                             }
                         }
+
                         songs.isNotEmpty() -> {
+                            splashViewModel.setIsLoaded(true)
                             DemoScreen(songs = songs, player = exoplayer)
                         }
+
                         else -> {
+                            splashViewModel.setIsLoaded(false)
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
