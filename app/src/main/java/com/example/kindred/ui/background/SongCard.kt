@@ -1,5 +1,6 @@
 package com.example.kindred.ui.background
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,25 +17,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.example.kindred.Song
 import com.google.common.math.LinearTransformation.horizontal
 
 
 @Composable
-fun SongCard(modifier: Modifier = Modifier, imgUri: Any, songName: String) {
+fun SongCard(modifier: Modifier = Modifier, song: Song, onSongClicked: (Song) -> Unit) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Image){
+            onSongClicked(song)
+        },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SongImage(imgUri)
+        SongImage(song.songArtwork?: song.albumArtwork)
 
         Spacer(Modifier.width(16.dp))
 
         Text(
-            text = songName,
+            text = song.displayName,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
