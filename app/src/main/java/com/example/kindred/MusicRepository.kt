@@ -11,9 +11,9 @@ import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import androidx.core.net.toUri
 
-const val TAG = "MusicRepository"
 
 class MusicRepository(val context: Context) {
+    private val TAG = "MusicRepository"
     val contentResolver = context.contentResolver
     private val uri = Media.EXTERNAL_CONTENT_URI
 

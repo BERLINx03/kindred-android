@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
 import coil3.compose.AsyncImage
 import com.example.kindred.R
 import com.example.kindred.Song
@@ -77,7 +78,7 @@ import kotlin.math.absoluteValue
 fun DemoScreen(
     modifier: Modifier = Modifier,
     songs: List<Song>,
-    player: ExoPlayer
+    player: MediaController
 ) {
     val colors = listOf(
         Color(0xFFFF5A5A),
@@ -343,9 +344,9 @@ fun DemoScreen(
         }
     }
 }
-
-@Composable
-@Preview
-fun BackgroundPreview() {
-    DemoScreen(songs = emptyList<Song>(), player = ExoPlayer.Builder(LocalContext.current).build())
-}
+//
+//@Composable
+//@Preview
+//fun BackgroundPreview() {
+//    DemoScreen(songs = emptyList<Song>(), player = ExoPlayer.Builder(LocalContext.current).build())
+//}
