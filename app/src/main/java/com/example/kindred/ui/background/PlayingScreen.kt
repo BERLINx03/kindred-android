@@ -1,6 +1,5 @@
 package com.example.kindred.ui.background
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,13 +30,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
 import com.example.kindred.R
 import com.example.kindred.Song
 import com.example.kindred.helperFormat
@@ -54,6 +55,9 @@ fun PlayingScreen(
     val config = LocalConfiguration.current
     val imgSize = (config.screenWidthDp / (1.7)).dp
 
+    LaunchedEffect(Unit) {
+        viewModel.initPlayer(player)
+    }
     val isPlaying = viewModel.isPlaying.collectAsState().value
     val currentPos = viewModel.currentPos.collectAsState().value
     val progress = viewModel.progress.collectAsState().value
@@ -61,23 +65,6 @@ fun PlayingScreen(
 
     val precent = currentPos.toFloat() /
             totalDuration.coerceAtLeast(1).toFloat()
-    LaunchedEffect(Unit) {
-        player.run {
-            addMediaItem(MediaItem.fromUri(song.song))
-            prepare()
-        }
-
-    }
-    LaunchedEffect(player.isPlaying) {
-        viewModel.setIsPlaying(player.isPlaying)
-    }
-
-    LaunchedEffect(player.currentPosition) {
-        viewModel.setCurrentPosition(player.currentPosition)
-    }
-    LaunchedEffect(player.duration) {
-        if (player.duration > 0) viewModel.setDuration(player.duration)
-    }
     LaunchedEffect(player.currentMediaItemIndex) {
         viewModel.setCurrentPlayingIndex(player.currentMediaItemIndex)
     }
@@ -96,12 +83,14 @@ fun PlayingScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Card(
-            shape = CircleShape,
-            border = BorderStroke(3.dp, White),
             modifier = Modifier.size(imgSize)
         ) {
             AsyncImage(
-                model = song.songArtwork ?: song.albumArtwork,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(song.songArtwork ?: song.albumArtwork)
+                    .crossfade(true)
+                    .error(R.drawable.apple_music_symbol_only)
+                    .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

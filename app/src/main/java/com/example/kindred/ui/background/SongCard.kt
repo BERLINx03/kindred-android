@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,13 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import com.example.kindred.R
 import com.example.kindred.Song
-import com.google.common.math.LinearTransformation.horizontal
 
 
 @Composable
@@ -36,7 +38,7 @@ fun SongCard(modifier: Modifier = Modifier, song: Song, onSongClicked: (Song) ->
         },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SongImage(song.songArtwork?: song.albumArtwork)
+        SongImage(song)
 
         Spacer(Modifier.width(16.dp))
 
@@ -55,9 +57,13 @@ fun SongCard(modifier: Modifier = Modifier, song: Song, onSongClicked: (Song) ->
 }
 
 @Composable
-fun SongImage(imgUri: Any) {
+fun SongImage(song: Song) {
     AsyncImage(
-        model = imgUri,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(song.songArtwork ?: song.albumArtwork)
+            .crossfade(true)
+            .error(R.drawable.apple_music_symbol_only)
+            .build(),
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier.clip(RoundedCornerShape(10.dp)).size(45.dp)

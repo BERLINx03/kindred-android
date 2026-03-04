@@ -42,9 +42,11 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.kindred.ui.ExperimentalOnBoardingScreen
 import com.example.kindred.ui.background.DemoScreen
+import com.example.kindred.ui.background.MainScreen
 import com.example.kindred.ui.background.Playlist
 import com.example.kindred.ui.theme.KindredTheme
 import com.example.kindred.ui.theme.SplashViewModel
+import com.example.kindred.ui.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,6 +60,7 @@ class MainActivity : ComponentActivity() {
     var exoplayer: ExoPlayer? by mutableStateOf(null)
     var mediaControl: MutableState<MediaController?>? = null
 
+    private val playerViewModel by viewModels<PlayerViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().apply {
             setKeepOnScreenCondition(fun(): Boolean { return !splashViewModel.isLoaded.value })
@@ -140,7 +143,12 @@ class MainActivity : ComponentActivity() {
                         songs.isNotEmpty() && mediaControl != null -> {
                             splashViewModel.setIsLoaded(true)
 //                            DemoScreen(songs = songs, player = mediaControl!!.value!!)
-                            Playlist(songs = songs)
+//                            Playlist(songs = songs)
+                            MainScreen(
+                                viewModel = playerViewModel,
+                                player = mediaControl!!.value!!,
+                                songs = songs
+                            )
                         }
 
                         else -> {
@@ -169,7 +177,11 @@ class MainActivity : ComponentActivity() {
             },
             MoreExecutors.directExecutor()
         )
+    }
 
+    override fun onStop() {
+        super.onStop()
+        mediaControl?.value?.release()
     }
 }
 
