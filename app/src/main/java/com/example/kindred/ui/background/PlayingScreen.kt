@@ -60,7 +60,7 @@ fun PlayingScreen(
     }
     val isPlaying = viewModel.isPlaying.collectAsState().value
     val currentPos = viewModel.currentPos.collectAsState().value
-    val progress = viewModel.progress.collectAsState().value
+    val progressBarWidth = viewModel.progress.collectAsState().value
     val totalDuration = viewModel.totalDuration.collectAsState().value
 
     val precent = currentPos.toFloat() /
@@ -116,13 +116,14 @@ fun PlayingScreen(
                     .clip(CircleShape)
                     .background(White)
                     .onGloballyPositioned {
-                        viewModel.setProgress(it.size)
+                        if (it.size.width != progressBarWidth.toInt()) viewModel.setProgress(it.size.width.toLong())
                     }
                     .pointerInput(Unit) {
                         detectTapGestures {
+                            // x -> x offset of this composable not the screen
                             val xPos = it.x.toLong()
                             val seekPos =
-                                (xPos * totalDuration) / progress.width.toLong()
+                                (xPos * totalDuration) / progressBarWidth
                             player.seekTo(seekPos.coerceIn(0, totalDuration))
                         }
                     }
@@ -131,7 +132,7 @@ fun PlayingScreen(
                             change.consume()
                             val xPos = change.position.x.toLong()
                             val seekPos =
-                                (xPos * totalDuration) / progress.width.toLong()
+                                (xPos * totalDuration) / progressBarWidth
                             player.seekTo(seekPos.coerceIn(0, totalDuration))
                         }
                     },

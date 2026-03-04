@@ -1,14 +1,21 @@
 package com.example.kindred.ui.background
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,16 +64,32 @@ fun SongCard(modifier: Modifier = Modifier, song: Song, onSongClicked: (Song) ->
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun SongImage(song: Song) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(song.songArtwork ?: song.albumArtwork)
-            .crossfade(true)
-            .error(R.drawable.apple_music_symbol_only)
-            .build(),
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        modifier = Modifier.clip(RoundedCornerShape(10.dp)).size(45.dp)
-    )
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val imgSize = screenWidth * 0.13f
+    ElevatedCard(
+        modifier = Modifier
+            .size(imgSize),
+        elevation = CardDefaults.cardElevation(
+            2.dp
+        ),
+        shape = RoundedCornerShape(5.dp)
+    ) {
+        // As Card doesn't have layout
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(song.songArtwork ?: song.albumArtwork)
+                    .crossfade(true)
+                    .error(R.drawable.apple_music_symbol_only)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize(.7f),
+            )
+        }
+    }
 }
