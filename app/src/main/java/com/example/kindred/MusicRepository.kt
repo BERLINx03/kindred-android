@@ -1,5 +1,6 @@
 package com.example.kindred
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,11 +11,15 @@ import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import android.util.Log
 import androidx.core.net.toUri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 
 class MusicRepository(val context: Context) {
-    private val TAG = "MusicRepository"
-    val contentResolver = context.contentResolver
+    private val tag = "MusicRepository"
+    private val contentResolver: ContentResolver = context.contentResolver
     private val uri = Media.EXTERNAL_CONTENT_URI
 
     private val albumUri = "content://media/external/audio/albumart".toUri()
@@ -29,13 +34,13 @@ class MusicRepository(val context: Context) {
 
     val selection = "duration < 360000"
     private val songs = mutableListOf<Song>()
-    fun fetchDeviceMusics(): List<Song> {
-        android.util.Log.d(
-            TAG,
+    fun fetchDeviceMusics(): Flow<List<Song>> = flow {
+        Log.d(
+            tag,
             "This is the music pass to append ids to: ${Media.EXTERNAL_CONTENT_URI} and this is the internal version ${Media.INTERNAL_CONTENT_URI}"
         )
 
-        Log.d(TAG, MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI.toString())
+        Log.d(tag, MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI.toString())
         contentResolver.query(
             uri,
             projection,
@@ -45,13 +50,13 @@ class MusicRepository(val context: Context) {
         ).use { cursor ->
             if (cursor != null) {
                 val idColumn = cursor.getColumnIndex(Media._ID)
-                Log.d(TAG, "id column is $idColumn")
+                Log.d(tag, "id column is $idColumn")
                 val titleColumn = cursor.getColumnIndex(Media.TITLE)
-                android.util.Log.d(TAG, "title Column is $titleColumn")
+                Log.d(tag, "title Column is $titleColumn")
                 val displayTitleColumn = cursor.getColumnIndex(Media.DISPLAY_NAME)
                 val dataColumn = cursor.getColumnIndex(Media.DATA)
                 val durationC = cursor.getColumnIndex(Media.DURATION)
-                android.util.Log.d(TAG, "duration Column is $durationC")
+                Log.d(tag, "duration Column is $durationC")
                 val albumC = cursor.getColumnIndex(Media.ALBUM_ID)
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idColumn)
@@ -61,8 +66,8 @@ class MusicRepository(val context: Context) {
                     val duration = cursor.getLong(durationC)
                     val albumId = cursor.getLong(albumC)
                     val albumImgUri = ContentUris.withAppendedId(albumUri, albumId)
-                    Log.d(TAG, "Album id is $albumId")
-                    Log.d(TAG, "duration = ${helperFormat(duration)}")
+                    Log.d(tag, "Album id is $albumId")
+                    Log.d(tag, "duration = ${helperFormat(duration)}")
                     val songUri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id)
                     val songArtwork = fetchSongArtwork(songUri, context)
                     songs.add(
@@ -78,12 +83,12 @@ class MusicRepository(val context: Context) {
                 }
             }
         }
-        Log.i(TAG, "${songs.size}")
+        Log.i(tag, "${songs.size}")
         songs.forEach { song ->
-            Log.d(TAG, "Song: $song")
+            Log.d(tag, "Song: $song")
         }
-        return songs
-    }
+        emit(songs)
+    }.flowOn(Dispatchers.IO)
 
     /*
     * `fetchSongArtwork` tries to fetch the image embedded image, if not existed use the album image

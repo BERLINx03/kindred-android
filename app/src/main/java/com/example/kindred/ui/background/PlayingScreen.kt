@@ -1,5 +1,6 @@
 package com.example.kindred.ui.background
 
+import android.os.Bundle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -36,6 +37,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
+import androidx.media3.session.MediaNotification
+import androidx.media3.session.MediaSession
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -45,6 +50,7 @@ import com.example.kindred.Song
 import com.example.kindred.helperFormat
 import com.example.kindred.ui.Controller
 import com.example.kindred.ui.viewmodel.PlayerViewModel
+import com.google.common.collect.ImmutableList
 
 @Composable
 fun PlayingScreen(

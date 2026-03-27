@@ -49,6 +49,7 @@ import com.example.kindred.ui.theme.SplashViewModel
 import com.example.kindred.ui.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -106,10 +107,11 @@ class MainActivity : ComponentActivity() {
                 contract = ActivityResultContracts.RequestPermission()
             ) { isGranted ->
                 if (isGranted) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val fetchedSongs = repo.fetchDeviceMusics()
-                        withContext(Dispatchers.Main) {
-                            songs = fetchedSongs
+                    lifecycleScope.launch {
+                        repo.fetchDeviceMusics().collectLatest { listOfSongs->
+                            withContext(Dispatchers.Main){
+                                songs = listOfSongs
+                            }
                         }
                     }
                 } else {
